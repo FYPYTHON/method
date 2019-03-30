@@ -1,5 +1,6 @@
 # coding=utf-8
-
+import pdb
+pdb.set_trace()
 """
 Given an unsorted integer array, find the smallest missing positive integer.
 """
@@ -49,3 +50,4 @@ class Solution1(object):
 if __name__ == "__main__":
     so = Solution1()
     print(so.firstMissingPositive(nums))
+    print(a)

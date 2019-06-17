@@ -2,5 +2,7 @@ sdk:
 https://www.panda3d.org/download/sdk-1-10-2/
 doc:
 https://www.panda3d.org/manual/?title=Installing_Panda3D_in_Windows
+pdf:
+http://www.allitebooks.org/panda3d-1-6-game-engine/
 设置python37
 python.exe --> python37.ext   path=python所在目录，不需要bin目录

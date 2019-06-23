@@ -6,3 +6,7 @@ pdf:
 http://www.allitebooks.org/panda3d-1-6-game-engine/
 设置python37
 python.exe --> python37.ext   path=python所在目录，不需要bin目录
+
+blender：
+https://www.blender.org/download/
+https://docs.blender.org/manual/zh-hans/dev/index.html

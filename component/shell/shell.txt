@@ -1,0 +1,5 @@
+awk -v RS=';'  'END {print --NR}'
+# -v 带参数，RS定义行分割符， NR是awk内置变量，Number of Records的缩写，表示当前记录条数（文件行数）；
+
+awk 'NR==1{print $1}' file
+# NR==1 定位在file的第一行   print $1 显示第一列内容

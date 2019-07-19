@@ -13,4 +13,4 @@ a.out
 *.pyc
 .idea
 __pycache__
-*.exe
+Panda3D-SDK-1.10.2-x64.exe

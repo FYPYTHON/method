@@ -1,0 +1,4 @@
+1、fatal: Could not read from remote repository
+hosts文件中增加：
+13.229.188.59 github.com
+13.229.188.59 git@github.com

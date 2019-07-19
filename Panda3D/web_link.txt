@@ -12,3 +12,9 @@ https://www.blender.org/download/
 https://docs.blender.org/manual/zh-hans/dev/index.html
 
 git:
+
+spacescape£º
+http://alexcpeterson.com/spacescape/
+
+panda3d git:
+https://github.com/panda3d/panda3d

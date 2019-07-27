@@ -2,3 +2,12 @@ http://linux.vbird.org/linux_basic/0420quota.php
 Linux—ßœ∞°£
 https://psutil.readthedocs.io/en/latest/
 psutil pythonø‚°£
+
+python encode∫Õdecode
+test = "≤‚ ‘"
+t8 = test.encode("utf-8")
+tg = test.encode("GBK")
+
+det8 = t8.decode("utf-8")
+detg = tg.decode("GBK")
+

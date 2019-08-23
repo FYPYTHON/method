@@ -2,3 +2,5 @@
 hosts文件中增加：
 13.229.188.59 github.com
 13.229.188.59 git@github.com
+
+ git remote set-url origin https://github.com/FYPYTHON/method.git

@@ -2,3 +2,15 @@ http://linux.vbird.org/linux_basic/0420quota.php
 Linux学习。
 https://psutil.readthedocs.io/en/latest/
 psutil python库。
+
+python encode和decode
+test = "测试"
+t8 = test.encode("utf-8")
+tg = test.encode("GBK")
+
+det8 = t8.decode("utf-8")
+detg = tg.decode("GBK")
+import chardet
+chardet.detch(tg) # {'encoding': 'KOI8-R', 'language': 'Russian', 'confidence': 0.38398486178080915}
+# GBK 包含所有的汉字编码
+

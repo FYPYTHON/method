@@ -6,8 +6,8 @@ import requests
 server_local = 'localhost'
 server_222 = '172.16.83.222'
 url = 'http://{}:8001/upload'.format(server_222)
-# filename = '1.txt'
-filename = 'test.rpm'
+filename = '1.txt'
+# filename = 'test.rpm'
 
 
 def get_header():

@@ -20,7 +20,7 @@ define("port", default=8001, help="run on the given port", type=int)
 dpath = 'upfile'
 time1 = 10
 MAX_STREAMED_SIZE = 1024 * 1024 * 1024
-
+BASE_DIR = os.path.join(os.path.abspath('.'), dpath)
 class SleepHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def get(self):
@@ -47,7 +47,7 @@ class UploadHandler(tornado.web.RequestHandler):
 
         filename = self.get_argument('filename', None)
         self.count = 0
-        self.fpath = os.path.join(os.path.join(os.path.abspath('.'), dpath), filename)
+        self.fpath = os.path.join(BASE_DIR, filename)
         self.mode = 'wb'
         print(self.request.method)
         if self.request.method == 'POST':
@@ -58,18 +58,6 @@ class UploadHandler(tornado.web.RequestHandler):
                 os.remove(self.fpath)
             else:
                 print('not exist...', self.fpath, smd5)
-
-    #     if self.request.method == 'GET':
-    #         filename = self.get_argument('filename', None)
-    #     else:
-    #         print(self.request.body_arguments)
-    #         print(self.request.arguments)
-    #
-    #     print('go prepare', time.time(), filename)
-    #     if filename is None:
-    #         return self.write(json.dumps({'msg': 'error', 'len': -1}))
-    #     self.fpath = os.path.join(os.path.join(os.path.abspath('.'), dpath), filename)
-    #     self.mode = 'wb'
 
 
     @tornado.gen.coroutine
@@ -92,9 +80,10 @@ class UploadHandler(tornado.web.RequestHandler):
                     if not b:
                         break
                     myhash.update(b)
+                myhash = myhash.hexdigest()
                 f.close()
 
-        return self.write(json.dumps({'msg': 'success', 'len': flen, 'fmd5': myhash.hexdigest()}))
+        return self.write(json.dumps({'msg': 'success', 'len': flen, 'fmd5': myhash}))
 
 
 
@@ -112,18 +101,9 @@ class UploadHandler(tornado.web.RequestHandler):
             print('request.body none')
             return self.write(json.dumps({'msg': 'error', 'count': self.count, 'flen': os.path.getsize(self.fpath)}))
 
-        # self.fpath = os.path.join(os.path.join(os.path.abspath('.'), dpath), filename)
         print('post', self.fpath)
-        # self.mode = 'wb'
-
-        # gmtime = float(self.get_argument('ftime', '0'))
-
 
         res = yield self.data_received(self.request.body)
-        # res = self.data_received(self.request.body)
-
-        # os.system('touch -d {} {}'.format(self.gmtime, self.fpath))
-        # self.f.close()
 
         return self.write(json.dumps({'msg': 'success', 'count': self.count, 'flen': os.path.getsize(self.fpath)}))
 
@@ -143,7 +123,11 @@ class UploadHandler(tornado.web.RequestHandler):
         # self.count += 1
 
         return True
+
+
 if __name__ == "__main__":
+    if not os.path.exists(BASE_DIR):
+        os.mkdir(BASE_DIR)
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers=[
             (r"/sleep", SleepHandler),

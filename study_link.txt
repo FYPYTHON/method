@@ -14,3 +14,5 @@ import chardet
 chardet.detch(tg) # {'encoding': 'KOI8-R', 'language': 'Russian', 'confidence': 0.38398486178080915}
 # GBK 包含所有的汉字编码
 
+https://github.com/andelf/fuck12306
+

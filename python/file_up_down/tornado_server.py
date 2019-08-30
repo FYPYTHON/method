@@ -19,20 +19,90 @@ from tornado.options import define, options
 define("port", default=8001, help="run on the given port", type=int)
 dpath = 'upfile'
 time1 = 10
+buf_size = 4096
+MAX_SINGLE = 1024 * 1024 * 10
 MAX_STREAMED_SIZE = 1024 * 1024 * 1024
 BASE_DIR = os.path.join(os.path.abspath('.'), dpath)
-class SleepHandler(tornado.web.RequestHandler):
+
+
+class DownloadHandler(tornado.web.RequestHandler):
+    executor = ThreadPoolExecutor(4)
+
     @tornado.gen.coroutine
     def get(self):
-        # tornado.gen.Task的参数是:要执行的函数, 参数
-        # res = task.sleep.apply_async(args=[time1])
-        res = yield torncelery.async(task.sleep, time1, 'SleepHandler')
-        # task.sleep.apply_async(args=[time1])
-        print(res)
-        # print(res.get())
-        # yield res.get()
-        self.write("when i sleep %ds. %s" % (time1, res))
+        filename = self.get_argument('filename', None)
+        smd5 = self.get_argument('smd5', '0')
+        fsize = int(self.get_argument('fsize', '0'))   # 客户端文件大小
+
+        fpath = os.path.join(BASE_DIR, filename)
+        print(fpath)
+        gsize = os.path.getsize(fpath)
+
+        self.set_header('Content-Type', 'application/octet-stream')
+        self.set_header('Content-Disposition', 'attachment; filename=' + filename)
+        self.set_header('Gsize', gsize)
+        self.set_header('Dmode', '0')
+
+        if not os.path.exists(fpath):
+            return self.write(json.dumps({'msg': 'error download file not exist.', 'code': 1}))
+        else:
+            if fsize > gsize:
+                return self.write(json.dumps({'msg': 'file exist but size less than client.', 'code': 0}))
+
+        yield self.read_data(fpath, fsize, smd5)
         self.finish()
+
+
+    @run_on_executor
+    def read_data(self, fpath, flen, smd5):
+        with open(fpath, 'rb') as f:
+
+            myhash = hashlib.md5()
+            current_read = 0
+            while current_read < flen:
+                if current_read + 4096 < flen:
+                    check_data = f.read(4096)
+                else:
+                    check_data = f.read(flen - current_read)
+                myhash.update(check_data)
+                current_read += 4096
+
+            # if flen > 0:
+            #     check_data = f.read(flen)
+            #     myhash.update(check_data)
+
+            if myhash.hexdigest() != smd5 or flen == 0:
+                self.set_header('Dmode', '0')
+            else:
+                self.set_header('Dmode', '1')
+            print('the same ? ', myhash.hexdigest(), smd5, myhash.hexdigest() == smd5)
+        self.write(json.dumps({"msg": "success", "code": 0}))
+
+
+    @tornado.gen.coroutine
+    def post(self):
+        filename = self.get_argument('filename', None)
+        brange = int(self.get_argument('brange', '0'))
+        fpath = os.path.join(BASE_DIR, filename)
+        print(fpath)
+        if not os.path.exists(fpath):
+            return self.write(json.dumps({'msg': 'error download', 'count': -1}))
+        print(brange)
+
+        yield self.send_data(fpath, brange)
+        self.finish()
+
+    @run_on_executor
+    def send_data(self, fpath, pos):
+        with open(fpath, 'rb') as f:
+            f.seek(pos)
+            has_read = 0
+            while has_read < MAX_SINGLE:
+                data = f.read(4096)
+                if not data:
+                    return
+                self.write(data)
+                has_read += 4096
 
 
 @stream_request_body
@@ -85,8 +155,6 @@ class UploadHandler(tornado.web.RequestHandler):
 
         return self.write(json.dumps({'msg': 'success', 'len': flen, 'fmd5': myhash}))
 
-
-
     @tornado.gen.coroutine
     def post(self):
         print('go post')
@@ -107,7 +175,6 @@ class UploadHandler(tornado.web.RequestHandler):
 
         return self.write(json.dumps({'msg': 'success', 'count': self.count, 'flen': os.path.getsize(self.fpath)}))
 
-
     @run_on_executor
     def data_received(self, data):
         # print("data:")
@@ -115,7 +182,6 @@ class UploadHandler(tornado.web.RequestHandler):
             return False
         else:
             with open(self.fpath, 'ab') as ff:
-                # print(data)
                 print(self.fpath, self.count, len(data))
                 ff.write(data)
                 self.count += 1
@@ -130,9 +196,8 @@ if __name__ == "__main__":
         os.mkdir(BASE_DIR)
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers=[
-            (r"/sleep", SleepHandler),
-            # (r"/down/(.*)", UploadHandler),
             (r"/upload", UploadHandler),
+            (r"/download", DownloadHandler),
     ])
 
     http_server = tornado.httpserver.HTTPServer(app, max_buffer_size=4 * MAX_STREAMED_SIZE)

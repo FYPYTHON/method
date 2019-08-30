@@ -48,11 +48,16 @@ class Getfile(object):  # 下载文件
         time.sleep(1)
 
     def cancel(self,filename):  # 取消下载
-        self.flag=False
+        self.flag = False
         time.sleep(1)
         if os.path.isfile(filename):
             os.remove(filename)
 
+
 if __name__ == '__main__':
-        with open('1.txt', 'ab') as f:
-            f.write(b'111111sssdfs' * 100)
+    with open('1.txt', 'rb') as f:
+        # f.write(b'111111sssdfs' * 100)
+        f.seek(10)
+        print(f.read(10))
+        print('ok')
+    # print(os.path.getsize('1.bin'))

@@ -15,4 +15,6 @@ chardet.detch(tg) # {'encoding': 'KOI8-R', 'language': 'Russian', 'confidence': 
 # GBK 包含所有的汉字编码
 
 https://github.com/andelf/fuck12306
+http://ftp.acc.umu.se/pub/GNOME/sources/totem/
+https://github.com/GNOME/longomatch/blob/master/libcesarplayer/gstscreenshot.c
 

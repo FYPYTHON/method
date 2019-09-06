@@ -10,19 +10,24 @@ import tornado.options
 import tornado.web
 import tornado.gen
 import tornado.httpclient
-# import tornado.web.stream_request_body
 from tornado.web import stream_request_body
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 
 from tornado.options import define, options
-define("port", default=8001, help="run on the given port", type=int)
+define("port", default=8081, help="run on the given port", type=int)
 dpath = 'upfile'
 time1 = 10
 buf_size = 4096
 MAX_SINGLE = 1024 * 1024 * 10
 MAX_STREAMED_SIZE = 1024 * 1024 * 1024
 BASE_DIR = os.path.join(os.path.abspath('.'), dpath)
+
+
+class TestHandler(tornado.web.RequestHandler):
+    def get(self):
+        print("go test", self.request.remote_ip)
+        return self.write("test ok %s" % self.request.request_time())
 
 
 class DownloadHandler(tornado.web.RequestHandler):
@@ -67,17 +72,12 @@ class DownloadHandler(tornado.web.RequestHandler):
                 myhash.update(check_data)
                 current_read += 4096
 
-            # if flen > 0:
-            #     check_data = f.read(flen)
-            #     myhash.update(check_data)
-
             if myhash.hexdigest() != smd5 or flen == 0:
                 self.set_header('Dmode', '0')
             else:
                 self.set_header('Dmode', '1')
             print('the same ? ', myhash.hexdigest(), smd5, myhash.hexdigest() == smd5)
         self.write(json.dumps({"msg": "success", "code": 0}))
-
 
     @tornado.gen.coroutine
     def post(self):
@@ -129,7 +129,6 @@ class UploadHandler(tornado.web.RequestHandler):
             else:
                 print('not exist...', self.fpath, smd5)
 
-
     @tornado.gen.coroutine
     def get(self):
         filename = self.get_argument('filename', None)
@@ -152,13 +151,10 @@ class UploadHandler(tornado.web.RequestHandler):
                     myhash.update(b)
                 myhash = myhash.hexdigest()
                 f.close()
-
         return self.write(json.dumps({'msg': 'success', 'len': flen, 'fmd5': myhash}))
 
     @tornado.gen.coroutine
     def post(self):
-        print('go post')
-
         filename = self.get_argument('filename', None)
 
         if filename is None:
@@ -170,9 +166,7 @@ class UploadHandler(tornado.web.RequestHandler):
             return self.write(json.dumps({'msg': 'error', 'count': self.count, 'flen': os.path.getsize(self.fpath)}))
 
         print('post', self.fpath)
-
         res = yield self.data_received(self.request.body)
-
         return self.write(json.dumps({'msg': 'success', 'count': self.count, 'flen': os.path.getsize(self.fpath)}))
 
     @run_on_executor
@@ -185,9 +179,6 @@ class UploadHandler(tornado.web.RequestHandler):
                 print(self.fpath, self.count, len(data))
                 ff.write(data)
                 self.count += 1
-        # self.f.write(data)
-        # self.count += 1
-
         return True
 
 
@@ -196,6 +187,7 @@ if __name__ == "__main__":
         os.mkdir(BASE_DIR)
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers=[
+            (r"/test", TestHandler),
             (r"/upload", UploadHandler),
             (r"/download", DownloadHandler),
     ])

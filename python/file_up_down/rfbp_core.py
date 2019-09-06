@@ -4,9 +4,10 @@ import os
 import hashlib
 import requests
 server_local = 'localhost'
-server_222 = '172.16.83.222'
-# url = 'http://{}:8001/upload'.format(server_222)
-downurl = 'http://{}:8001/download'.format(server_222)
+server_222 = '172.16.83.226'
+server = server_222
+url = 'http://{}:80/upload'.format(server)
+downurl = 'http://{}:80/download'.format(server)
 filename = '1.txt'
 # filename = 'test.rpm'
 MAX_SINGLE = 1024 * 1024 * 10
@@ -138,6 +139,6 @@ def download():
 
 if __name__ == "__main__":
 
-    # upload_file(0)
-    download()
+    main_upload()
+    # download()
 

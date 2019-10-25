@@ -1,0 +1,2 @@
+webpackJsonp([3],{FB7y:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r={render:function(){var e=this.$createElement;return(this._self._c||e)("router-view")},staticRenderFns:[]};var a=n("VU/8")({name:"LdfsRegionView",data:function(){return{}}},r,!1,function(e){n("fYj2")},"data-v-49d4e0c5",null);t.default=a.exports},fYj2:function(e,t){}});
+//# sourceMappingURL=3.60064421ff2f724351b0.js.map

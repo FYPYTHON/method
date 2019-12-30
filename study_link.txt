@@ -18,3 +18,6 @@ https://github.com/andelf/fuck12306
 http://ftp.acc.umu.se/pub/GNOME/sources/totem/
 https://github.com/GNOME/longomatch/blob/master/libcesarplayer/gstscreenshot.c
 
+
+https://github.com/Urinx/WeixinBot/blob/master/wxbot_demo_py3/weixin.py
+

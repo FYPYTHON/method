@@ -21,3 +21,7 @@ https://github.com/GNOME/longomatch/blob/master/libcesarplayer/gstscreenshot.c
 
 https://github.com/Urinx/WeixinBot/blob/master/wxbot_demo_py3/weixin.py
 
+
+1¡¢python algorithms
+https://github.com/TheAlgorithms/Python/blob/master/arithmetic_analysis/bisection.py
+

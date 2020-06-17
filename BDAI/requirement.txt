@@ -1,0 +1,4 @@
+phone==0.4.2
+phonenumbers==8.12.5
+pyhanlp==0.1.66
+cocoNLP==0.0.13

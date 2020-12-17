@@ -1,26 +1,21 @@
 # coding=utf-8
-
-BROKER_URL = 'redis://:feiying@127.0.0.1:6379/'
-
-CELERY_RESULT_BACKEND = 'redis://:feiying@127.0.0.1:6379/'
-
-CELERY_TASK_RESULT_EXPIRES = 30 * 60    # 结果保留时间
-
-CELERY_TASK_SERIALIZER = 'json'
-
-CELERY_RESULT_SERIALIZER = 'json'
-
-CELERY_ACCEPT_CONTENT = ['json']
-
-CELERY_TIMEZONE = 'Asia/Shanghai'
-
-CELERY_ENABLE_UTC = True
-
-CELERYD_CONCURRENCY = 3  # worker数量
-
-CELERYD_HIJACK_ROOT_LOGGER = False  # 如果True则会移除所有的root logger下的handler。
+# /opt/midware/python3.8/bin/python3 -m celery --version
+# celery=5.0.2
 
 
-CELERY_ACKS_LATE = False
+# broker_url = 'redis://:fy123456@127.0.0.1:6379/'
+# result_backend = 'redis://:fy123456@127.0.0.1:6379/'
+# task_result_expires = 30
+# task_serializer = 'json'
+# result_serializer = 'json'
+# accept_content = ['json']
+# timezone = 'Asia/Shanghai'
+# enable_utc = True
+# work_concurrency = 3  # worker number
+# hijack_root_logger = False  # 如果True则会移除所有的root logger下的handler。
+# prefetch_multiplier = 1  # 每一个worker服务的task数量
+# acks_late = False
 
-CELERYD_PREFETCH_MULTIPLIER = 1  # 每一个worker服务的task数量
+# sqlite
+broker_url = 'sqla+sqlite:///tc.db'
+# result_backend = 'sqla+sqlite:///tc.db'

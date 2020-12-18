@@ -1,13 +1,16 @@
 ﻿#include<iostream>
 #include<ctime>
 #include<cstdlib>  // 随机数 rand()
-#include<mem.h>    // memcpy
+#include<memory.h>    // memcpy
+#include "mythreadlock.h"
+
+
 #define DEL_PTR(p) if(p) delete p; p=NULL;
 #define DEL_PTR_ARRAY( p ) if(p) delete [] p; p = NULL;
 #define varName(x) #x
 
-#define MaxArray 5
-#define MaxData 100
+#define MaxArray 8000
+#define MaxData  100000
 using std::cout;
 using std::endl;
 void pprint(char* p)
@@ -58,25 +61,29 @@ char *getRandStr(char* str,const int len)
 
 class PointerInfo
 {
-    char* p;
+    size_t p;
     size_t len;
 public:
-    PointerInfo():p(NULL),len(0){}
-    PointerInfo(char* p1, size_t len1):p(p1),len(len1){
-        cout<<"PointerInfo()"<<endl;
+    PointerInfo():p(0),len(0)
+    {
+        // cout<<"PointerInfo()"<<endl;
+    }
+    PointerInfo(size_t p1, size_t len1):p(p1),len(len1){
+        // cout<<"PointerInfo()"<<endl;
     }
     ~PointerInfo(){
-        DEL_PTR(p);
-        cout<<"~PointerInfo()"<<endl;
+        // cout<<"~PointerInfo()"<<endl;
     }
-    char* getPointer(){
+    size_t getPointer()
+    {
         return p;
     }
-    size_t getLen(){
+    size_t getLen()
+    {
         return len;
     }
-    void pfprint(){ cout<<"pointer info:"<<p<<","<<len<<endl;}
-    void setPointer(char* p1){ p = p1;}
+    void pfprint(){ cout<<"pointer info:"<<len<<","<<p<<endl;}
+    void setPointer(const size_t p1){ p = p1;}
     void setLen(const size_t len1){ len = len1;}
 };
 
@@ -88,23 +95,33 @@ class MemPool
 // public:
     static size_t offset;
     static size_t pos;
+
+    MyThreadLock mp_lock;
+    size_t rounds;
 public:
-    MemPool()
+    MemPool():pflist(NULL),mp(NULL),rounds(0)
     {
+        if(pflist) DEL_PTR_ARRAY(pflist);
+        if(mp) DEL_PTR_ARRAY(mp);
+
         if(pflist == NULL)
         {
+            cout<<"MemPool() pflist"<<endl;
             pflist = new PointerInfo[MaxArray];
         }
         if(mp == NULL)
         {
+            cout<<"MemPool() mp"<<endl;
             mp = new char[MaxData];
+            // memset(mp, 0, MaxData*sizeof(char));
         }
-        cout<<"MemPool()"<<endl;
+        // cout<<"MemPool()"<<endl;
 
     }
     ~MemPool()
     {
         DEL_PTR_ARRAY(pflist);
+        //cout<<"free pflist ok"<<endl;
         DEL_PTR_ARRAY(mp);
         cout<<"~MemPool()"<<endl;
     }
@@ -119,22 +136,56 @@ public:
     {
         return pflist;
     }
+    void printMP()
+    {
+        cout<<"mp:";
+        for(size_t i=0;i<MaxData;i++)
+        {
+            cout<<*(mp+i);
+        }
+        cout<<endl;
+    }
     int writeData(char* data, size_t datalen)
     {
+        MyAutoLock mplock(&mp_lock);  // thread lock
         if((offset + datalen) > MaxData)
         {
             tprint("no enough memory to write data.");
-            return 1;
+            // cout<<"offset + datalen:"<<offset + datalen<<endl;
+            rounds++;
+            if(rounds > 1)
+            {
+                cout<<"1 rounds. then break"<<endl;
+                return 1;
+            }
+            else
+            {
+                cout << "\t";
+                cout << rounds << " rounds ..." << endl;
+                offset = 0;
+                pos = 0;
+            }
+
         }
-        memcpy(mp+offset, data, datalen);
-        cout<<"mp data:"<<mp+offset<<endl;
-        cout<<"dd: "<< data<<"\tnow offset:"<<offset<<endl;
-        (pflist+pos)->setPointer(mp+offset);
+
+        if(pos > MaxArray - 1)
+        {
+            pos = 0;
+            cout << "\t";
+            cout << pos << " new pos start ..." << endl;
+        }
+
+        memcpy(mp + offset, data, datalen);
+
+        // cout<<"pos:"<<pos<<",offset:"<<offset<<",mp data:"<<mp+offset<<endl;
+
+        // (pflist+pos)->setPointer(mp+offset);
+        (pflist+pos)->setPointer(offset);
         (pflist+pos)->setLen(datalen);
-        //pflist[pos]->setPointer(mp+offset);
-        //pflist[pos]->setLen(datalen);
-        offset += datalen+1;
+
+        offset += datalen;
         pos++;
+
 
         return 0;
     }
@@ -144,59 +195,55 @@ size_t MemPool::offset = 0;
 
 int main()
 {
-    /*
-    double start_time = 0.0f, end_time = 0.0f;
-    std::cout<<"----" << endl;
-    std::cout<<start_time<<","<<end_time<<endl;
-    char* summary = "mypp.cpp start...";
-    pprint(summary);
-
-    start_time = clock();
-
-
-    end_time = clock();
-    tprint(end_time - start_time);
-    tprint(MaxArray, varName(MaxArray));
-
-    initSeed();
-    for(size_t i=0;i<10;i++)
-    {
-        size_t n1 = getRandNum();
-        tprint(n1);
-    }
-    char a[20];
-    tprint(getRandStr(a, 16), "getRandStr");
-    */
+    float starttime=.0f, endtime=.0f;
+    starttime = clock();
     MemPool* mymp = new MemPool();
     tprint(sizeof(*mymp), "mymp");
-    cout<<"offset:"<<mymp->getOffset() <<endl;
+
     initSeed();
-    while (mymp->getOffset() < MaxData)
+
+    while (mymp->getOffset() + 1 < MaxData)
     {
 
         size_t slen = getRandNum();
-        char data[20];
+        char data[20] = {'0'};
         getRandStr(data, slen);
-        // tprint(slen,"slen");
-        if ((mymp->getOffset() + slen) > MaxData)
-        {
-            break;
-        }
-        if(mymp->writeData(data, slen))
+
+        // cout <<"rand data:"<< data << "," <<slen<<endl;
+
+        if(mymp->writeData(data, slen + 1))
         {
             cout << "error write data." <<endl;
             break;
         }
 
     }
+
     cout<<"---over-----"<< endl;
-    //tprint(MemPool::offset, "offset");
-    //tprint(mymp->getMPV(), "mp");
+    cout<<"offset:"<<mymp->getOffset() <<",pos:"<<mymp->getPos()<<endl;
+
+    // tprint(mymp->getMPV(), "mp");
+
     PointerInfo* pflist = mymp->getPFL();
     for(size_t i=0;i < MaxArray; i++)
     {
-        (pflist+i)->pfprint();
+        if((pflist+i)->getLen()> 0){
+
+            // size_t pos = (pflist+i)->getPointer();
+            // cout<<mymp->getMPV() + pos<<endl;
+        }
+        else
+        {
+            // cout<< i <<" no pointer"<<endl;
+        }
+
     }
-    mymp->~MemPool();
+    // cout<<"offset:"<<mymp->getOffset() <<",pos:"<<mymp->getPos()<<endl;
+    cout<<"go free"<<endl;
+    // mymp->printMP();
+    delete mymp;
+    endtime = clock();
+    cout<<"used:" << endtime - starttime << endl;
+    //mymp->~MemPool();
 
 }
